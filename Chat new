@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BitChat - دردشة الشبكة المحلية</title>
+    <style>
+        /* إعدادات الخطوط والألوان العامة */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* 1. شاشة الدخول */
+        #login-screen {
+            background: #1e293b;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        #login-screen h1 {
+            color: #38bdf8;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        #login-screen p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .username-input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            border: 2px solid #334155;
+            background: #0f172a;
+            color: #fff;
+            font-size: 1rem;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .username-input:focus {
+            border-color: #38bdf8;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            background: #38bdf8;
+            color: #0f172a;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.1s;
+        }
+
+        .login-btn:hover {
+            background: #0ea5e9;
+        }
+
+        .login-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* 2. شاشة الدردشة الرئيسية */
+        #chat-screen {
+            display: none; /* مخفية افتراضياً وتظهر بعد الدخول */
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            background: #1e293b;
+            border-radius: 16px;
+            border: 1px solid #334155;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+
+        /* الهيدر */
+        .chat-header {
+            background: #0f172a;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+        }
+
+        .chat-header h2 {
+            color: #38bdf8;
+            font-size: 1.3rem;
+        }
+
+        .status-badge {
+            font-size: 0.85rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            background: #1e293b;
+            color: #94a3b8;
+        }
+
+        .status-badge.online {
+            color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+        }
+
+        /* منطقة الرسائل */
+        .messages-container {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            background: #111827;
+        }
+
+        /* تصميم فقاعات الرسائل */
+        .message {
+            max-width: 70%;
+            padding: 0.8rem 1rem;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* رسائل المستخدمين الآخرين */
+        .message.received {
+            background: #1e293b;
+            color: #f1f5f9;
+            align-self: flex-start;
+            border-top-right-radius: 2px;
+        }
+
+        /* رسائل المستخدم الحالي */
+        .message.sent {
+            background: #0284c7;
+            color: #fff;
+            align-self: flex-end;
+            border-top-left-radius: 2px;
+        }
+
+        .message .sender-name {
+            display: block;
+            font-size: 0.75rem;
+            color: #38bdf8;
+            margin-bottom: 0.3rem;
+            font-weight: bold;
+        }
+
+        .message.sent .sender-name {
+            color: #bae6fd;
+        }
+
+        /* النظام / التنبيهات */
+        .message.system {
+            background: transparent;
+            color: #64748b;
+            align-self: center;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        /* منطقة إدخال الرسائل */
+        .chat-input-area {
+            background: #0f172a;
+            padding: 1rem;
+            display: flex;
+            gap: 0.8rem;
+            border-top: 1px solid #334155;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: #fff;
+            outline: none;
+            font-size: 0.95rem;
+        }
+
+        .chat-input:focus {
+            border-color: #38bdf8;
+        }
+
+        .send-btn {
+            padding: 0 1.5rem;
+            border: none;
+            border-radius: 8px;
+            background: #38bdf8;
+            color: #0f172a;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .send-btn:hover {
+            background: #0ea5e9;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. واجهة الدخول -->
+    <div id="login-screen">
+        <div>
+            <h1>BitChat</h1>
+            <p>مرحباً بك في غرف الدردشة المحلية للشبكة</p>
+        </div>
+        <input type="text" class="username-input" placeholder="أدخل اسمك المستعار..." maxlength="20">
+        <button class="login-btn">دخول الدردشة الآن</button>
+    </div>
+
+    <!-- 2. واجهة الدردشة -->
+    <div id="chat-screen">
+        <div class="chat-header">
+            <h2>غرفة الدردشة العامة</h2>
+            <span class="status-badge" id="net-status">جاري الاتصال بالسيرفر...</span>
+        </div>
+        
+        <div class="messages-container" id="messages-box">
+            <!-- رسالة ترحيبية من النظام داخل التطبيق -->
+            <div class="message system">أهلاً بك في BitChat، يرجى الالتزام بالاحترام المتبادل.</div>
+        </div>
+
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="msg-input" placeholder="اكتب رسالتك هنا..." autocomplete="off">
+            <button class="send-btn" id="send-button">إرسال</button>
+        </div>
+    </div>
+
+    <!-- البرمجة والربط الذكي (JavaScript) -->
+    <script>
+        const serverUrl = 'ws://192.168.10.1:8080';
+        let socket;
+        let myUsername = '';
+
+        const loginScreen = document.getElementById('login-screen');
+        const chatScreen = document.getElementById('chat-screen');
+        const netStatus = document.getElementById('net-status');
+        const messagesBox = document.getElementById('messages-box');
+        const msgInput = document.getElementById('msg-input');
+        const sendButton = document.getElementById('send-button');
+
+        // 1. محاولة الاتصال بـ الـ WebSocket بالسيرفر المحلي
+        function connectToServer() {
+            try {
+                socket = new WebSocket(serverUrl);
+
+                socket.onopen = () => {
+                    netStatus.textContent = "متصل بالسيرفر المحلي";
+                    netStatus.className = "status-badge online";
+                };
+
+                socket.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    handleIncomingMessage(data);
+                };
+
+                socket.onclose = () => {
+                    netStatus.textContent = "السيرفر غير متصل (وضع المعاينة)";
+                    netStatus.className = "status-badge";
+                    // إعادة المحاولة التلقائية بعد 5 ثوانٍ إذا انقطع الاتصال
+                    setTimeout(connectToServer, 5000);
+                };
+
+                socket.onerror = () => {
+                    netStatus.textContent = "خطأ في الاتصال";
+                };
+            } catch (e) {
+                console.log("تعذر الاتصال بالسيرفر، يعمل الآن في البيئة التجريبية.");
+            }
+        }
+
+        // تشغيل محاولة الاتصال فور تحميل الصفحة
+        connectToServer();
+
+        // 2. معالجة الضغط على زر الدخول
+        document.querySelector('.login-btn').addEventListener('click', () => {
+            const input = document.querySelector('.username-input');
+            myUsername = input.value.trim();
+
+            if (myUsername === '') {
+                alert('من فضلك ضع اسماً مستعاراً صالحاً للدخول!');
+                return;
+            }
+
+            // إخفاء شاشة الدخول وإظهار شاشة الدردشة
+            loginScreen.style.display = 'none';
+            chatScreen.style.display = 'flex';
+
+            // إذا كان السيرفر شغالاً، نخبره بانضمام المستخدم الجديد
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    type: 'system',
+                    action: 'join',
+                    username: myUsername
+                }));
+            } else {
+                // رسالة تنبيهية تظهر فقط عند تصفح الكود بعيداً عن السيرفر (كالمعاينة من جيت هاب)
+                appendSystemMessage(`أنت تتصفح في الوضع التجريبي. الاسم المستعار الحالي: ${myUsername}`);
+            }
+        });
+
+        // 3. إرسال الرسائل
+        function sendMessage() {
+            const text = msgInput.value.trim();
+            if (text === '') return;
+
+            const messagePayload = {
+                type: 'chat',
+                username: myUsername,
+                message: text
+            };
+
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify(messagePayload));
+            } else {
+                // محاكاة إرسال محلي في وضع المعاينة بدون سيرفر
+                appendMessage(myUsername, text, 'sent');
+            }
+
+            msgInput.value = '';
+            msgInput.focus();
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        msgInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // 4. عرض الرسائل في الواجهة
+        function appendMessage(sender, text, side) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${side}`;
+            
+            // إضافة اسم المرسل إذا كانت الرسالة واردة من شخص آخر
+            if (side === 'received') {
+                msgDiv.innerHTML = `<span class="sender-name">${sender}</span>${text}`;
+            } else {
+                msgDiv.innerHTML = `<span class="sender-name">أنت</span>${text}`;
+            }
+
+            messagesBox.appendChild(msgDiv);
+            messagesBox.scrollTop = messagesBox.scrollHeight; // نزول تلقائي لآخر رسالة
+        }
+
+        function appendSystemMessage(text) {
+            const sysDiv = document.createElement('div');
+            sysDiv.className = 'message system';
+            sysDiv.textContent = text;
+            messagesBox.appendChild(sysDiv);
+            messagesBox.scrollTop = messagesBox.scrollHeight;
+        }
+
+        // 5. التعامل مع البيانات القادمة من سيرفر الباك إند الحقيقي
+        function handleIncomingMessage(data) {
+            if (data.type === 'chat') {
+                const side = (data.username === myUsername) ? 'sent' : 'received';
+                appendMessage(data.username, data.message, side);
+            } else if (data.type === 'system') {
+                if (data.action === 'join') {
+                    appendSystemMessage(`🔔 انضم ${data.username} إلى غرف الدردشة.`);
+                } else if (data.action === 'leave') {
+                    appendSystemMessage(`🚪 غادر ${data.username} الدردشة.`);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
